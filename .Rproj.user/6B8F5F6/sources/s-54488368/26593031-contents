@@ -1,0 +1,76 @@
+library(ggplot2)
+?geom_map
+ids <- factor(c("1.1", "2.1", "1.2", "2.2", "1.3", "2.3"))
+
+values <- data.frame(
+  id = ids,
+  value = c(3, 3.1, 3.1, 3.2, 3.15, 3.5)
+)
+
+positions <- data.frame(
+  id = rep(ids, each = 4),
+  x = c(2, 1, 1.1, 2.2, 1, 0, 0.3, 1.1, 2.2, 1.1, 1.2, 2.5, 1.1, 0.3,
+        0.5, 1.2, 2.5, 1.2, 1.3, 2.7, 1.2, 0.5, 0.6, 1.3),
+  y = c(-0.5, 0, 1, 0.5, 0, 0.5, 1.5, 1, 0.5, 1, 2.1, 1.7, 1, 1.5,
+        2.2, 2.1, 1.7, 2.1, 3.2, 2.8, 2.1, 2.2, 3.3, 3.2)
+)
+
+ggplot(values) +
+  geom_map(aes(map_id = id), map = positions) +
+  expand_limits(positions)
+ggplot(values, aes(fill = value)) +
+  geom_map(aes(map_id = id), map = positions) +
+  expand_limits(positions)
+ggplot(values, aes(fill = value)) +
+  geom_map(aes(map_id = id), map = positions) +
+  expand_limits(positions) + ylim(0, 3)
+
+library(MAP)
+library(maps)
+world<-map_data("world")
+ggplot()+
+  geom_map(data = world,map =world)
+volcano_raw <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-05-12/volcano.csv")
+head(volcano_raw)
+world <- map_data("world")
+library(tidyverse)
+volcano_raw %>%
+  count(primary_volcano_type, sort = TRUE)
+volcano_df <- volcano_raw %>%
+  transmute(
+    volcano_type = case_when(
+      str_detect(primary_volcano_type, "Stratovolcano") ~ "Stratovolcano",
+      str_detect(primary_volcano_type, "Shield") ~ "Shield",
+      TRUE ~ "Other"
+    ),
+    volcano_number, latitude, longitude, elevation,
+    tectonic_settings, major_rock_1
+  ) %>%
+  mutate_if(is.character, factor)
+
+volcano_df %>%
+  count(volcano_type, sort = TRUE)
+world <- map_data("world")
+getwd
+read_csv("covid19")
+ggplot() +
+  geom_map(
+    data = world, map = world,
+    aes(long, lat, map_id = region),
+    color = "white", fill = "gray50", size = 0.05, alpha = 0.2
+  ) +
+  geom_point(
+    data = volcano_df,
+    aes(longitude, latitude, color = volcano_type),
+    alpha = 0.8
+  ) +
+  theme_void(base_family = "IBMPlexSans") +
+  labs(x = NULL, y = NULL, color = NULL)
+
+
+ggplot() +
+  geom_map(
+    data = world, map = world,
+    aes(long, lat, map_id = region),
+    color = "red", fill = "black", size = 0.05, alpha = 0.2
+  )

@@ -1,0 +1,196 @@
+---
+title: "Untitled"
+author: "Purity"
+date: "15/05/2020"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+library(readxl)
+covid19 <- read_excel("covid19.xlsx")
+View(covid19)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+colSums(is.na(covid19))
+anyDuplicated(covid19)
+head(covid19)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r}
+str(covid19)
+```
+
+```{r}
+summary(covid19)
+```
+
+#i want to check only for 15th may
+```{r}
+library(tidyverse)
+covid19_15<-covid19%>%
+  filter(day == 15,month == 5)
+```
+
+
+```{r}
+head(covid19_15)
+```
+
+```{r}
+dim(covid19_15)
+```
+```{r}
+colSums(is.na(covid19_15))
+```
+#check on the str more
+```{r}
+glimpse(covid19_15)
+```
+#some data won't be needed for this analysis like geoid and countrycode
+
+```{r}
+covid19_15$popData2018<-parse_integer(covid19_15$popData2018)
+```
+
+```{r}
+covid19_15<-select(covid19_15,-c(geoId ,countryterritoryCode ))
+```
+```{r}
+head(covid19_15)
+```
+```{r}
+ggplot(covid19_15,aes(y = cases,x = popData2018,na.rm =T))+
+  geom_jitter()+
+  geom_smooth(method = "lm")+
+  theme_classic()
+```
+
+
+
+
+```{r}
+#check distribution
+library(ggplot2)
+```
+```{r}
+hist(
+  covid19_15$cases,
+  main = "Distribution of cases on 15th May",
+  col = "purple",
+  
+)
+```
+
+```{r}
+#use ggplot
+ggplot(covid19_15,aes(cases))+
+  geom_histogram()+
+  geom_freqpoly()+
+  xlim(0,1000)+
+  theme_classic()
+```
+#lets check on deaths
+```{r}
+ggplot(covid19_15,aes(deaths))+
+  geom_histogram()+
+  geom_freqpoly()+
+  theme_classic()
+```
+
+```{r}
+covid19_15$countriesAndTerritories<-as.factor(covid19_15$countriesAndTerritories)
+str(covid19_15$countriesAndTerritories)
+```
+
+```{r}
+covid19_15r<-covid19_15%>%
+  count(countriesAndTerritories,wt = deaths,sort = T)%>%
+  top_n(10)
+  ggplot(covid19_15r,mapping = aes(x = reorder(countriesAndTerritories,-n),y = n))+
+  geom_col(fill = "powder blue")+
+    ggtitle("The top 10 leading countries in number of deaths on 15th May")+
+    theme_classic()+
+    theme(axis.text.x=element_text(angle = 90))
+    
+
+```
+#U.S.A is the one leading in the number of deaths
+#the above are the top ten leading countries in death
+```{r}
+covid19_15%>%
+  count(countriesAndTerritories,wt = cases,sort = T)%>%
+  top_n(10)%>%
+  ggplot(covid19_15,mapping = aes(x = reorder(countriesAndTerritories,-n),y = n))+
+  geom_col(fill = "purple")+
+  ggtitle("The number of cases as per 15th of may")+
+  xlab(" Top 10 Countries")+
+  ylab("The counts of cases")+
+  theme_classic()+
+  theme(axis.text.x=element_text(angle = 90))
+```
+#U.S.A is still leading in number of cases and its almost evident that contries in the top ten in deaths are almost the same in the top ten cases.
+#though some countries have huge cases but less to no deaths.
+```{r}
+#check the continents affected
+library(RColorBrewer)
+covid19_15%>%
+  count(continentExp,wt = cases,sort = T)%>%
+  ggplot(covid19_15,mapping = aes(x =reorder(continentExp,-n) ,y = n))+
+  geom_bar(stat = "identity",fill = "black")+
+  ggtitle("Number of cases per continent")+
+  xlab("Continents affected")+
+  ylab("Frequency")+
+  theme_classic()+
+  theme(axis.text.x=element_text(angle = 90))
+```
+
+```{r}
+#lets plot cases against deaths and see their relationship
+ggplot(data = covid19_15,aes(x = cases,y = deaths))+
+  geom_point()+
+  geom_smooth(method = "lm")+
+  xlim(0,1000)+
+  ylim(0,1000)+
+  theme_classic()
+  
+```
+
+#as we can see they are linear coorelated
+#a slight increase in number of covid 19 cases also increases number of 
+```
+
+```{r}
+library(maps)
+library(MAP)
+world = map_data("world")
+covid19_15%>%
+  group_by(countriesAndTerritories)%>%
+  filter(cases>0)%>%
+  ggplot(covid19_15,mapping = aes(NULL,NULL,)) +
+  geom_map(
+    data = world, map = world,
+    aes(long, lat, map_id = region),
+     fill = "gray50", size = 0.05, alpha = 0.2
+  ) +
+  theme_void(base_family = "IBMPlexSans") +
+  labs(x = NULL, y = NULL, color = NULL)
+
+  
+```
+
